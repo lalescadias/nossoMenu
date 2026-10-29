@@ -15,6 +15,7 @@ import {
 import { api, apiAll } from "../api";
 import { useApp } from "../main";
 import { useAction } from "../useAction";
+import { useConfirmation } from "../useConfirmation";
 import {
   Loading,
   ErrorMessage,
@@ -145,6 +146,7 @@ export function RecipeDetail({
   id: string;
   onClose: () => void;
 }) {
+  const { confirm, confirmationModal } = useConfirmation();
   const recipe = useQuery({
     queryKey: ["recipe", id],
     queryFn: () => api<Recipe>(`/recipes/${id}`),
@@ -161,6 +163,7 @@ export function RecipeDetail({
     );
   return (
     <Modal title={r?.name || "A nossa receita"} onClose={onClose} wide>
+      {confirmationModal}
       {recipe.isPending ? (
         <Loading />
       ) : r ? (
@@ -246,8 +249,8 @@ export function RecipeDetail({
                 <button
                   className="button danger"
                   disabled={action.pending}
-                  onClick={() => {
-                    if (window.confirm("Eliminar esta receita familiar?"))
+                  onClick={async () => {
+                    if (await confirm("Eliminar esta receita familiar?"))
                       void action.run(
                         () =>
                           api(

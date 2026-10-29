@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { api, apiAll } from "../api";
 import { useAction } from "../useAction";
+import { useConfirmation } from "../useConfirmation";
 import { Modal, ErrorMessage, Empty, Loading, categories, units } from "../ui";
 import { iso, weekLabel, format } from "../date";
 import type {
@@ -31,6 +32,7 @@ import type {
 } from "../types";
 
 export function ShoppingPage() {
+  const { confirm, confirmationModal } = useConfirmation();
   const [activeId, setActiveId] = useState<string | null>(null),
     [tab, setTab] = useState("active"),
     [filter, setFilter] = useState("all"),
@@ -70,7 +72,7 @@ export function ShoppingPage() {
     await action.run(() => api("/favorite-products", "POST", item));
   }
   async function remove(item: Item) {
-    if (list && window.confirm(`Remover ${item.name} da lista?`))
+    if (list && (await confirm(`Remover ${item.name} da lista?`)))
       await action.run(() =>
         api(
           `/shopping-lists/${list.id}/items/${item.id}?version=${item.version}`,
@@ -80,6 +82,7 @@ export function ShoppingPage() {
   }
   return (
     <>
+      {confirmationModal}
       <div className="page-heading">
         <div>
           <span className="eyebrow">PARA NÃO FALTAR NADA À MESA</span>
@@ -435,9 +438,9 @@ export function ShoppingPage() {
               <button
                 className="button secondary full"
                 disabled={action.pending}
-                onClick={() => {
+                onClick={async () => {
                   if (
-                    window.confirm(
+                    await confirm(
                       list.status === "ACTIVE"
                         ? "Concluir esta lista? Continuará disponível no histórico."
                         : "Reabrir esta lista?",
@@ -719,6 +722,7 @@ function ItemEditor({
   );
 }
 function Favorites({ list }: { list?: ShoppingList }) {
+  const { confirm, confirmationModal } = useConfirmation();
   const [search, setSearch] = useState(""),
     [selected, setSelected] = useState<string[]>([]),
     [newFavorite, setNewFavorite] = useState(false);
@@ -746,6 +750,7 @@ function Favorites({ list }: { list?: ShoppingList }) {
   }
   return (
     <>
+      {confirmationModal}
       <div className="section-toolbar">
         <div>
           <h2>Os produtos de sempre</h2>
@@ -823,8 +828,8 @@ function Favorites({ list }: { list?: ShoppingList }) {
                 className="icon-button delete"
                 aria-label={`Remover favorito ${f.name}`}
                 disabled={action.pending}
-                onClick={() => {
-                  if (window.confirm(`Remover ${f.name} dos favoritos?`))
+                onClick={async () => {
+                  if (await confirm(`Remover ${f.name} dos favoritos?`))
                     void action.run(() =>
                       api(`/favorite-products/${f.id}`, "DELETE"),
                     );

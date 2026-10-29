@@ -58,6 +58,29 @@ beforeEach(() => {
   });
 });
 describe("Compras partilhadas", () => {
+  it("só remove um produto depois de confirmar no modal", async () => {
+    mount();
+    const user = userEvent.setup();
+    await screen.findByText("Leite");
+    await user.click(screen.getByRole("button", { name: "Remover Leite" }));
+    await screen.findByRole("dialog", { name: "Confirmar ação" });
+    expect(
+      vi.mocked(api).mock.calls.some(([, method]) => method === "DELETE"),
+    ).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("dialog", { name: "Confirmar ação" })).toBeNull();
+    expect(
+      vi.mocked(api).mock.calls.some(([, method]) => method === "DELETE"),
+    ).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Remover Leite" }));
+    await user.click(await screen.findByRole("button", { name: "Confirmar" }));
+    await waitFor(() =>
+      expect(api).toHaveBeenCalledWith(
+        "/shopping-lists/list-1/items/item-1?version=4",
+        "DELETE",
+      ),
+    );
+  });
   it("guarda a marcação com a versão do produto e mostra erros sem perder a lista", async () => {
     mount();
     const user = userEvent.setup();

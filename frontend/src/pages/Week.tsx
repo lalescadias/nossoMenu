@@ -20,6 +20,7 @@ import {
 import { api, apiAll } from "../api";
 import { useApp, useUser } from "../main";
 import { useAction } from "../useAction";
+import { useConfirmation } from "../useConfirmation";
 import { monday, shift, format, iso, weekLabel } from "../date";
 import { Loading, ErrorMessage, Empty, DishArt, Modal } from "../ui";
 import type { Menu, RecipeView, Family, Meal, Recipe } from "../types";
@@ -377,6 +378,7 @@ function MealPicker({
   selection: { meal?: Meal; day: string; type: string };
   onClose: () => void;
 }) {
+  const { confirm, confirmationModal } = useConfirmation();
   const [baseVersion] = useState(menu.version);
   const [offset, setOffset] = useState(0),
     [manual, setManual] = useState(false),
@@ -423,6 +425,7 @@ function MealPicker({
       title={`${selection.type === "LUNCH" ? "Almoço" : "Jantar"} de ${format(selection.day)}`}
       onClose={onClose}
     >
+      {confirmationModal}
       <p>Uma pequena troca para a semana ficar mais tua.</p>
       <div className="tabs">
         <button
@@ -471,8 +474,8 @@ function MealPicker({
           <button
             className="button danger"
             disabled={action.pending}
-            onClick={() => {
-              if (window.confirm("Remover esta refeição do menu?"))
+            onClick={async () => {
+              if (await confirm("Remover esta refeição do menu?"))
                 void action.run(
                   () =>
                     api(

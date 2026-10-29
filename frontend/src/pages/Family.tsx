@@ -13,9 +13,11 @@ import {
 import { api, apiAll } from "../api";
 import { useUser } from "../main";
 import { useAction } from "../useAction";
+import { useConfirmation } from "../useConfirmation";
 import { Loading, ErrorMessage, Modal } from "../ui";
 import type { Family, Account, Activity } from "../types";
 export function FamilyPage() {
+  const { confirm, confirmationModal } = useConfirmation();
   const user = useUser(),
     action = useAction(),
     query = useQueryClient();
@@ -42,6 +44,7 @@ export function FamilyPage() {
     editBase.current = { id: f.id, version: f.version };
   return (
     <>
+      {confirmationModal}
       <div className="page-heading">
         <div>
           <span className="eyebrow">CADA FAMÍLIA TEM A SUA RECEITA</span>
@@ -219,9 +222,9 @@ export function FamilyPage() {
                     className="icon-button delete"
                     aria-label={`Remover ${m.name} da família`}
                     disabled={action.pending}
-                    onClick={() => {
+                    onClick={async () => {
                       if (
-                        window.confirm(`Remover ${m.name} do espaço familiar?`)
+                        await confirm(`Remover ${m.name} do espaço familiar?`)
                       )
                         void action.run(() =>
                           api(`/families/current/members/${m.id}`, "DELETE"),
@@ -258,11 +261,11 @@ export function FamilyPage() {
             </p>
             <form
               className="form-stack"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 const token = new FormData(e.currentTarget).get("token");
                 if (
-                  window.confirm(
+                  await confirm(
                     "Entrar na família do convite e deixar o espaço atual?",
                   )
                 )
