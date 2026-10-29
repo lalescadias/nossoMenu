@@ -1,0 +1,10 @@
+.env
+node_modules/
+dist/
+target/
+.tools/
+*.log
+*.tsbuildinfo
+data/
+backups/
+*.dump
